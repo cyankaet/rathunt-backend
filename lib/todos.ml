@@ -45,11 +45,43 @@ let rollback () =
   in
   Caqti_lwt.Pool.use rollback' pool |> or_error
 
-(* Stub these out for now. *)
-let get_all () = failwith "Not implemented"
+let get_all_query =
+  Caqti_request.collect Caqti_type.unit
+    Caqti_type.(tup2 int string)
+    "SELECT id, content FROM todos"
 
-let add _content = failwith "Not implemented"
+let get_all () =
+  let get_all' (module C : Caqti_lwt.CONNECTION) =
+    C.fold get_all_query
+      (fun (id, content) acc -> { id; content } :: acc)
+      () []
+  in
+  Caqti_lwt.Pool.use get_all' pool |> or_error
 
-let remove _id = failwith "Not implemented"
+let add_query =
+  Caqti_request.exec Caqti_type.string
+    "INSERT INTO todos (content) VALUES (?)"
 
-let clear () = failwith "Not implemented"
+let add content =
+  let add' content (module C : Caqti_lwt.CONNECTION) =
+    C.exec add_query content
+  in
+  Caqti_lwt.Pool.use (add' content) pool |> or_error
+
+let remove_query =
+  Caqti_request.exec Caqti_type.int "DELETE FROM todos WHERE id = ?"
+
+let remove id =
+  let remove' id (module C : Caqti_lwt.CONNECTION) =
+    C.exec remove_query id
+  in
+  Caqti_lwt.Pool.use (remove' id) pool |> or_error
+
+let clear_query =
+  Caqti_request.exec Caqti_type.unit "TRUNCATE TABLE todos"
+
+let clear () =
+  let clear' (module C : Caqti_lwt.CONNECTION) =
+    C.exec clear_query ()
+  in
+  Caqti_lwt.Pool.use clear' pool |> or_error
