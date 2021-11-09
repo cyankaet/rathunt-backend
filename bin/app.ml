@@ -1,5 +1,4 @@
 open Opium
-open Lwt_result.Syntax
 
 module Person = struct
   type t = {
@@ -22,13 +21,24 @@ let print_person_handler req =
   Lwt.return (Response.of_json person)
 
 let print_first_todo req =
-  let* todos = Db.get_all () in
+  let result =
+    match Lwt.state (Db.get_all ()) with
+    | Sleep -> failwith "sleeping?"
+    | Return x -> x
+    | Fail exn -> raise exn
+  in
+  let todos =
+    match result with
+    | Ok x -> x
+    | Error (Database_error exn) -> failwith exn
+  in
   let one = List.hd todos in
   let person =
     { Person.content = one.content; Person.id = one.id }
     |> Person.yojson_of_t
   in
-  Lwt.return (Response.of_json person)
+  let resp = Response.of_json person in
+  Lwt.return resp
 
 let _ =
   App.empty
