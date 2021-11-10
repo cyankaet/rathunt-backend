@@ -1,4 +1,5 @@
-# Build and run the app
 run:
-    dune exec bin/app.exe
+	dune exec bin/app.exe
 
+debug:
+	dune exec bin/app.exe -- --debug
