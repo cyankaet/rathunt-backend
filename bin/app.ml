@@ -21,26 +21,6 @@ let print_person_handler req =
   let person = { Person.content; id } |> Person.yojson_of_t in
   Lwt.return (Response.of_json person)
 
-let print_first_todo req =
-  let id = Router.param req "id" |> int_of_string in
-  let result =
-    print_string "hello";
-    match Lwt.state (Db.get_all ()) with
-    | Sleep -> failwith "sleeping?"
-    | Return x -> x
-    | Fail exn -> raise exn
-  in
-  let todos =
-    match result with
-    | Ok x -> x
-    | Error (Database_error exn) -> failwith exn
-  in
-  let one = List.hd todos in
-  let person =
-    { Person.content = one.content; Person.id } |> Person.yojson_of_t
-  in
-  Lwt.return (Response.of_json person)
-
 let unwrap call =
   let result =
     match Lwt.state call with
@@ -51,6 +31,17 @@ let unwrap call =
   match result with
   | Ok x -> x
   | Error (Db.Database_error exn) -> failwith exn
+
+let get_all_db db = Lwt.return db
+
+let print_first_todo req =
+  let id = Router.param req "id" |> int_of_string in
+  let todos = unwrap (Lwt.bind (Db.get_all ()) get_all_db) in
+  let one = List.hd todos in
+  let person =
+    { Person.content = one.content; Person.id } |> Person.yojson_of_t
+  in
+  Lwt.return (Response.of_json person)
 
 let _ =
   App.empty
