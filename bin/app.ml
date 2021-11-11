@@ -1,40 +1,49 @@
 open Opium
 open Lwt.Syntax
 
-module Person = struct
+module Team = struct
   type t = {
     id : int;
-    content : string;
+    name : string;
+    solves : int;
   }
 
   let yojson_of_t t =
-    `Assoc [ ("name", `String t.content); ("id", `Int t.id) ]
+    `Assoc
+      [
+        ("name", `String t.name);
+        ("id", `Int t.id);
+        ("solves", `Int t.solves);
+      ]
 end
 
-let print_person_handler req =
-  let content = Router.param req "content" in
-  print_string "hello p";
+(* litmus test for whether the API is working at all, returns the inputs
+   you passed and solves = 0 *)
+let print_team_handler req =
+  let name = Router.param req "name" in
   let id = Router.param req "id" |> int_of_string in
-  let person = { Person.content; id } |> Person.yojson_of_t in
-  Lwt.return (Response.of_json person)
+  let team = { Team.name; id; Team.solves = 0 } |> Team.yojson_of_t in
+  Lwt.return (Response.of_json team)
 
 let unwrap = function
   | Ok x -> x
   | Error (Db.Database_error exn) -> failwith exn
 
-let get_all_db db = Lwt.return db
-
-let print_first_todo req =
+(* currently, the print first team route accepts an id and gives that id
+   to the returned team because i haven't figured out how to take no
+   arguments from the request body *)
+let print_first_team req =
   let id = Router.param req "id" |> int_of_string in
   let* todos = Db.get_all () in
   let one = List.hd (unwrap todos) in
   let person =
-    { Person.content = one.content; Person.id } |> Person.yojson_of_t
+    { Team.name = one.name; Team.id; Team.solves = one.solves }
+    |> Team.yojson_of_t
   in
   Lwt.return (Response.of_json person)
 
 let _ =
   App.empty
-  |> App.get "/todo/:id" print_first_todo
-  |> App.get "/todo/:id/:content" print_person_handler
+  |> App.get "/team/:id" print_first_team
+  |> App.get "/team/:id/:name" print_team_handler
   |> App.run_command

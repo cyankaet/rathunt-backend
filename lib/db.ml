@@ -9,9 +9,10 @@ let pool =
   | Ok pool -> pool
   | Error err -> failwith (Caqti_error.show err)
 
-type todo = {
+type team = {
   id : int;
-  content : string;
+  name : string;
+  solves : int;
 }
 
 type error = Database_error of string
@@ -26,9 +27,10 @@ let or_error m =
 
 let migrate_query =
   Caqti_request.exec Caqti_type.unit
-    {| CREATE TABLE todos (
+    {| CREATE TABLE teams (
             id SERIAL NOT NULL PRIMARY KEY,
-            content VARCHAR
+            name VARCHAR,
+            solves INTEGER
          )
       |}
 
@@ -39,7 +41,7 @@ let migrate () =
   Caqti_lwt.Pool.use migrate' pool |> or_error
 
 let rollback_query =
-  Caqti_request.exec Caqti_type.unit "DROP TABLE todos"
+  Caqti_request.exec Caqti_type.unit "DROP TABLE teams"
 
 let rollback () =
   let rollback' (module C : Caqti_lwt.CONNECTION) =
@@ -49,29 +51,30 @@ let rollback () =
 
 let get_all_query =
   Caqti_request.collect Caqti_type.unit
-    Caqti_type.(tup2 int string)
-    "SELECT id, content FROM todos"
+    Caqti_type.(tup3 int string int)
+    "SELECT id, name, solves FROM teams"
 
 let get_all () =
   let get_all' (module C : Caqti_lwt.CONNECTION) =
     C.fold get_all_query
-      (fun (id, content) acc -> { id; content } :: acc)
+      (fun (id, name, solves) acc -> { id; name; solves } :: acc)
       () []
   in
   Caqti_lwt.Pool.use get_all' pool |> or_error
 
 let add_query =
-  Caqti_request.exec Caqti_type.string
-    "INSERT INTO todos (content) VALUES (?)"
+  Caqti_request.exec
+    Caqti_type.(tup2 string int)
+    "INSERT INTO teams (name, solves) VALUES (?, ?)"
 
-let add content =
-  let add' content (module C : Caqti_lwt.CONNECTION) =
-    C.exec add_query content
+let add name solves =
+  let add' team (module C : Caqti_lwt.CONNECTION) =
+    C.exec add_query team
   in
-  Caqti_lwt.Pool.use (add' content) pool |> or_error
+  Caqti_lwt.Pool.use (add' (name, solves)) pool |> or_error
 
 let remove_query =
-  Caqti_request.exec Caqti_type.int "DELETE FROM todos WHERE id = ?"
+  Caqti_request.exec Caqti_type.int "DELETE FROM teams WHERE id = ?"
 
 let remove id =
   let remove' id (module C : Caqti_lwt.CONNECTION) =
@@ -80,7 +83,7 @@ let remove id =
   Caqti_lwt.Pool.use (remove' id) pool |> or_error
 
 let clear_query =
-  Caqti_request.exec Caqti_type.unit "TRUNCATE TABLE todos"
+  Caqti_request.exec Caqti_type.unit "TRUNCATE TABLE teams"
 
 let clear () =
   let clear' (module C : Caqti_lwt.CONNECTION) =
