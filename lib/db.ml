@@ -25,7 +25,7 @@ let or_error m =
   | Ok a -> Ok a |> Lwt.return
   | Error e -> Error (Database_error (Caqti_error.show e)) |> Lwt.return
 
-let migrate_query =
+let migrate_team_table =
   Caqti_request.exec Caqti_type.unit
     {| CREATE TABLE teams (
             id SERIAL NOT NULL PRIMARY KEY,
@@ -34,11 +34,36 @@ let migrate_query =
          )
       |}
 
-let migrate () =
+let migrate_puzzle_table =
+  Caqti_request.exec Caqti_type.unit
+    {| CREATE TABLE puzzles (
+            id SERIAL NOT NULL PRIMARY KEY,
+            name VARCHAR
+          )
+      |}
+
+let migrate_team_puzzle_join =
+  Caqti_request.exec Caqti_type.unit
+    {| CREATE TABLE puzzles (
+          id INTEGER NOT NULL PRIMARY KEY,
+          team_id INTEGER NOT NULL,  
+          puzzle_id INTEGER NOT NULL,  
+          FOREIGN KEY team_id REFERENCES teams(id),
+          FOREIGN KEY puzzle_id REFERENCES puzzles(id)
+        )
+    |}
+
+let migrate migrate_table =
   let migrate' (module C : Caqti_lwt.CONNECTION) =
-    C.exec migrate_query ()
+    C.exec migrate_table ()
   in
   Caqti_lwt.Pool.use migrate' pool |> or_error
+
+let migrate_teams = migrate migrate_team_table
+
+let migrate_puzzles = migrate migrate_puzzle_table
+
+let migrate_join = migrate migrate_team_puzzle_join
 
 let rollback_query =
   Caqti_request.exec Caqti_type.unit "DROP TABLE teams"
