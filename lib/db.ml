@@ -59,11 +59,11 @@ let migrate migrate_table =
   in
   Caqti_lwt.Pool.use migrate' pool |> or_error
 
-let migrate_teams = migrate migrate_team_table
+let migrate_teams () = migrate migrate_team_table
 
-let migrate_puzzles = migrate migrate_puzzle_table
+let migrate_puzzles () = migrate migrate_puzzle_table
 
-let migrate_join = migrate migrate_team_puzzle_join
+let migrate_join () = migrate migrate_team_puzzle_join
 
 let rollback_query =
   Caqti_request.exec Caqti_type.unit "DROP TABLE teams"

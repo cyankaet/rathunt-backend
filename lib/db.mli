@@ -7,7 +7,11 @@ type team = {
 type error = Database_error of string
 
 (* Migrations-related helper functions. *)
-val migrate : unit -> (unit, error) result Lwt.t
+val migrate_teams : unit -> (unit, error) result Lwt.t
+
+val migrate_puzzles : unit -> (unit, error) result Lwt.t
+
+val migrate_join : unit -> (unit, error) result Lwt.t
 
 val rollback : unit -> (unit, error) result Lwt.t
 
