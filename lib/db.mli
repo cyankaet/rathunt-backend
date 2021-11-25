@@ -1,8 +1,4 @@
-type team = {
-  id : int;
-  name : string;
-  solves : int;
-}
+type team = Types.Team.t
 
 type error = Database_error of string
 

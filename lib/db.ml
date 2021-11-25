@@ -1,3 +1,6 @@
+include Types.Team
+include Types.Puzzle
+
 let connection_url = "postgresql://kaet@localhost:5432/rat"
 
 (* This is the connection pool we will use for executing DB
@@ -9,11 +12,7 @@ let pool =
   | Ok pool -> pool
   | Error err -> failwith (Caqti_error.show err)
 
-type team = {
-  id : int;
-  name : string;
-  solves : int;
-}
+type team = Types.Team.t
 
 type error = Database_error of string
 

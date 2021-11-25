@@ -1,28 +1,14 @@
 open Opium
 open Lwt.Syntax
-
-module Team = struct
-  type t = {
-    id : int;
-    name : string;
-    solves : int;
-  }
-
-  let yojson_of_t t =
-    `Assoc
-      [
-        ("name", `String t.name);
-        ("id", `Int t.id);
-        ("solves", `Int t.solves);
-      ]
-end
+open Database
+open Database.Types
 
 (* litmus test for whether the API is working at all, returns the inputs
    you passed and solves = 0 *)
 let print_team_handler req =
   let name = Router.param req "name" in
   let id = Router.param req "id" |> int_of_string in
-  let team = { Team.name; id; Team.solves = 0 } |> Team.yojson_of_t in
+  let team = { Team.name; id; solves = 0 } |> Team.yojson_of_t in
   Lwt.return (Response.of_json team)
 
 let unwrap = function

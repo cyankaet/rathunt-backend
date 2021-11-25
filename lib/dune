@@ -1,5 +1,6 @@
 (library
- (name db)
+ (name database)
+ (public_name Database)
  (libraries lwt caqti caqti-lwt caqti-driver-postgresql)
  (preprocess
   (pps lwt_ppx)))
