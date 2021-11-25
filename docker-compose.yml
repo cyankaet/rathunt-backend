@@ -1,0 +1,7 @@
+version: "3"
+
+services:
+  rathunt:
+    image: rathunt:backend
+    ports:
+      - "3000:3000"
