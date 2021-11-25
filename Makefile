@@ -1,4 +1,8 @@
 .PHONY: test
+
+build:
+	dune build
+	
 run:
 	dune exec bin/app.exe
 
