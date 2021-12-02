@@ -11,3 +11,6 @@ debug:
 
 test:
 	OCAMLRUNPARAM=b dune exec test/main.exe
+
+utop:
+	dune utop lib
