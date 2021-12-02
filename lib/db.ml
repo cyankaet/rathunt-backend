@@ -43,12 +43,12 @@ let migrate_puzzle_table =
 
 let migrate_team_puzzle_join =
   Caqti_request.exec Caqti_type.unit
-    {| CREATE TABLE puzzles (
-          id INTEGER NOT NULL PRIMARY KEY,
+    {| CREATE TABLE puzteam (
+          id SERIAL NOT NULL PRIMARY KEY,
           team_id INTEGER NOT NULL,  
           puzzle_id INTEGER NOT NULL,  
-          FOREIGN KEY team_id REFERENCES teams(id),
-          FOREIGN KEY puzzle_id REFERENCES puzzles(id)
+          FOREIGN KEY(team_id) REFERENCES teams(id),
+          FOREIGN KEY(puzzle_id) REFERENCES puzzles(id)
         )
     |}
 
