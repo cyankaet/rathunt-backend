@@ -1,3 +1,5 @@
-(executable
- (name app)
- (libraries opium Database))
+(executables
+ (names migrate app)
+ (libraries opium Database)
+ (preprocess
+  (pps lwt_ppx)))
