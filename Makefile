@@ -1,4 +1,4 @@
-.PHONY: test
+.PHONY: test migrate
 
 build:
 	dune build
@@ -14,3 +14,6 @@ test:
 
 utop:
 	dune utop lib
+
+migrate:
+	dune exec bin/migrate.exe
