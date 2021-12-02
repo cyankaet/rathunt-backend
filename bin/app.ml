@@ -15,15 +15,12 @@ let print_team_handler req =
   let team = { Team.name; id; solves = 0 } |> Team.yojson_of_t in
   Lwt.return (Response.of_json team)
 
-(* currently, the print first team route accepts an id and gives that id
-   to the returned team because i haven't figured out how to take no
-   arguments from the request body *)
-let print_first_team req =
-  let id = Router.param req "id" |> int_of_string in
+(* prints first team in database*)
+let print_first_team _ =
   let* todos = Db.get_all () in
   let one = List.hd (unwrap todos) in
   let person =
-    { Team.name = one.name; Team.id; Team.solves = one.solves }
+    { Team.name = one.name; Team.id = one.id; Team.solves = one.solves }
     |> Team.yojson_of_t
   in
   Lwt.return (Response.of_json person)
@@ -31,5 +28,5 @@ let print_first_team req =
 let _ =
   App.empty
   |> App.get "/team/:id/:name" print_team_handler
-  |> App.get "/team/:id" print_first_team
+  |> App.get "/team/first" print_first_team
   |> App.run_command
