@@ -3,6 +3,9 @@ open Lwt.Syntax
 open Database
 open Database.Types
 
+(** [unwrap obj] unwraps the result monad for database operation,
+    returning the result if there is no exn, otherwise raising the
+    exception*)
 let unwrap = function
   | Ok x -> x
   | Error (Db.Database_error exn) -> failwith exn
@@ -16,17 +19,31 @@ let print_team_handler req =
   Lwt.return (Response.of_json team)
 
 (* prints first team in database*)
-let print_first_team _ =
-  let* todos = Db.get_all () in
-  let one = List.hd (unwrap todos) in
+let get_first_team _ =
+  let* teams = Db.get_all () in
+  let one = List.hd (unwrap teams) in
   let person =
     { Team.name = one.name; Team.id = one.id; Team.solves = one.solves }
     |> Team.yojson_of_t
   in
   Lwt.return (Response.of_json person)
 
+let rec serialize_teams (teams : Team.t list) =
+  match teams with
+  | [] -> []
+  | h :: t ->
+      ({ Team.name = h.name; Team.id = h.id; Team.solves = h.solves }
+      |> Team.yojson_of_t)
+      :: serialize_teams t
+
+let get_all_teams _ =
+  let* teams = Db.get_all () in
+  let team_lst = unwrap teams |> serialize_teams in
+  Lwt.return (Response.of_json (`List team_lst))
+
 let _ =
   App.empty
   |> App.get "/team/:id/:name" print_team_handler
-  |> App.get "/team/first" print_first_team
+  |> App.get "/team/first" get_first_team
+  |> App.get "/teams/" get_all_teams
   |> App.run_command
