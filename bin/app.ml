@@ -22,19 +22,11 @@ let print_team_handler req =
 let get_first_team _ =
   let* teams = Db.get_all () in
   let one = List.hd (unwrap teams) in
-  let person =
-    { Team.name = one.name; Team.id = one.id; Team.solves = one.solves }
-    |> Team.yojson_of_t
-  in
+  let person = one |> Team.yojson_of_t in
   Lwt.return (Response.of_json person)
 
-let rec serialize_teams (teams : Team.t list) =
-  match teams with
-  | [] -> []
-  | h :: t ->
-      ({ Team.name = h.name; Team.id = h.id; Team.solves = h.solves }
-      |> Team.yojson_of_t)
-      :: serialize_teams t
+let serialize_teams (teams : Team.t list) =
+  List.fold_left (fun acc x -> Team.yojson_of_t x :: acc) [] teams
 
 let get_all_teams _ =
   let* teams = Db.get_all () in
