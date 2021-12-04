@@ -1,7 +1,7 @@
 include Types.Team
 include Types.Puzzle
 
-let connection_url = "postgresql://kaet@localhost:5432/rat"
+let connection_url = Unix.getenv "DATABASE_URL"
 
 (* This is the connection pool we will use for executing DB
    operations. *)
