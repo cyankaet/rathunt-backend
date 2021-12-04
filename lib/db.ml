@@ -37,7 +37,8 @@ let migrate_puzzle_table =
   Caqti_request.exec Caqti_type.unit
     {| CREATE TABLE puzzles (
             id SERIAL NOT NULL PRIMARY KEY,
-            name VARCHAR
+            name VARCHAR,
+            answer VARCHAR
           )
       |}
 
