@@ -45,6 +45,7 @@ let test_post req =
   let name = List.assoc "team" req in
   let solves = List.assoc "solves" req |> int_of_string in
   let team = { Team.name; id = 3; Team.solves } |> Team.yojson_of_t in
+  ignore (Db.add name solves);
   Lwt.return (Response.of_json team)
 
 let _ =
