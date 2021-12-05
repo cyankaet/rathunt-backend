@@ -12,4 +12,4 @@ RUN opam pin add opium.~dev https://github.com/rgrinberg/opium.git
 WORKDIR /usr/app
 COPY . .
 
-CMD make debug
+CMD make migrate && make debug

@@ -7,7 +7,7 @@ run:
 	dune exec bin/app.exe
 
 debug:
-	dune exec bin/app.exe -- --debug
+	dune exec bin/app.exe -- -p ${PORT} --debug
 
 test:
 	OCAMLRUNPARAM=b dune exec test/main.exe
