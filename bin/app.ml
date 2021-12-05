@@ -40,7 +40,7 @@ let get_all_teams _ =
   let team_lst = unwrap teams |> serialize_teams in
   Lwt.return (Response.of_json (`List team_lst))
 
-let test_post req =
+let add_new_team req =
   let* req = read_form_data req in
   let name = List.assoc "team" req in
   let solves = List.assoc "solves" req |> int_of_string in
@@ -53,5 +53,5 @@ let _ =
   |> App.get "/team/:id/:name" print_team_handler
   |> App.get "/team/first" get_first_team
   |> App.get "/teams/" get_all_teams
-  |> App.post "/team/post/" test_post
+  |> App.post "/team/new/" add_new_team
   |> App.run_command
