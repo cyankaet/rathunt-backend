@@ -9,7 +9,11 @@ val migrate_puzzles : unit -> (unit, error) result Lwt.t
 
 val migrate_join : unit -> (unit, error) result Lwt.t
 
-val rollback : unit -> (unit, error) result Lwt.t
+val rollback_teams : unit -> (unit, error) result Lwt.t
+
+val rollback_join : unit -> (unit, error) result Lwt.t
+
+val rollback_puzzles : unit -> (unit, error) result Lwt.t
 
 (* Core functions *)
 val get_all : unit -> (team list, error) result Lwt.t

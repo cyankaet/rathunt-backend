@@ -17,3 +17,6 @@ utop:
 
 migrate:
 	dune exec bin/migrate.exe
+
+rollback:
+	dune exec bin/rollback.exe

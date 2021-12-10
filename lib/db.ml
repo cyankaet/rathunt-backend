@@ -29,7 +29,8 @@ let migrate_team_table =
     {| CREATE TABLE teams (
             id SERIAL NOT NULL PRIMARY KEY,
             name VARCHAR,
-            solves INTEGER
+            solves INTEGER,
+            password VARCHAR
          )
       |}
 
@@ -65,14 +66,26 @@ let migrate_puzzles () = migrate migrate_puzzle_table
 
 let migrate_join () = migrate migrate_team_puzzle_join
 
-let rollback_query =
+let rollback_teams_table =
   Caqti_request.exec Caqti_type.unit "DROP TABLE teams"
 
-let rollback () =
+let rollback_join_table =
+  Caqti_request.exec Caqti_type.unit "DROP TABLE puzteam"
+
+let rollback_puzzle_table =
+  Caqti_request.exec Caqti_type.unit "DROP TABLE puzzles"
+
+let rollback rollback_query =
   let rollback' (module C : Caqti_lwt.CONNECTION) =
     C.exec rollback_query ()
   in
   Caqti_lwt.Pool.use rollback' pool |> or_error
+
+let rollback_teams () = rollback rollback_teams_table
+
+let rollback_join () = rollback rollback_join_table
+
+let rollback_puzzles () = rollback rollback_puzzle_table
 
 let get_all_query =
   Caqti_request.collect Caqti_type.unit

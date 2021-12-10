@@ -1,5 +1,5 @@
 (executables
- (names migrate app)
+ (names migrate app rollback)
  (libraries opium Database)
  (preprocess
   (pps lwt_ppx)))

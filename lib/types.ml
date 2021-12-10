@@ -1,3 +1,5 @@
+(** internal represntation of a team, can be translated to a JSON for
+    return *)
 module Team = struct
   type t = {
     id : int;
@@ -14,6 +16,8 @@ module Team = struct
       ]
 end
 
+(** internal represntation of a puzzle, can be translated to a JSON for
+    return *)
 module Puzzle = struct
   type t = {
     id : int;
