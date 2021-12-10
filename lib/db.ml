@@ -66,26 +66,19 @@ let migrate_puzzles () = migrate migrate_puzzle_table
 
 let migrate_join () = migrate migrate_team_puzzle_join
 
-let rollback_teams_table =
-  Caqti_request.exec Caqti_type.unit "DROP TABLE teams"
-
-let rollback_join_table =
-  Caqti_request.exec Caqti_type.unit "DROP TABLE puzteam"
-
-let rollback_puzzle_table =
-  Caqti_request.exec Caqti_type.unit "DROP TABLE puzzles"
-
-let rollback rollback_query =
+let rollback name =
   let rollback' (module C : Caqti_lwt.CONNECTION) =
-    C.exec rollback_query ()
+    C.exec
+      (Caqti_request.exec Caqti_type.unit ("DROP TABLE " ^ name))
+      ()
   in
   Caqti_lwt.Pool.use rollback' pool |> or_error
 
-let rollback_teams () = rollback rollback_teams_table
+let rollback_teams () = rollback "teams"
 
-let rollback_join () = rollback rollback_join_table
+let rollback_join () = rollback "puzteam"
 
-let rollback_puzzles () = rollback rollback_puzzle_table
+let rollback_puzzles () = rollback "puzzles"
 
 let get_all_query =
   Caqti_request.collect Caqti_type.unit
