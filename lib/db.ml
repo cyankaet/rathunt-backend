@@ -80,12 +80,12 @@ let rollback_join () = rollback "puzteam"
 
 let rollback_puzzles () = rollback "puzzles"
 
-let get_all_query =
+let get_all_teams_query =
   Caqti_request.collect Caqti_type.unit
     Caqti_type.(tup3 int string int)
     "SELECT id, name, solves FROM teams"
 
-let get_all () =
+let get_all get_all_query =
   let get_all' (module C : Caqti_lwt.CONNECTION) =
     C.fold get_all_query
       (fun (id, name, solves) acc -> { id; name; solves } :: acc)
@@ -93,16 +93,38 @@ let get_all () =
   in
   Caqti_lwt.Pool.use get_all' pool |> or_error
 
-let add_query =
-  Caqti_request.exec
-    Caqti_type.(tup2 string int)
-    "INSERT INTO teams (name, solves) VALUES (?, ?)"
+let get_all_teams () = get_all get_all_teams_query
 
-let add name solves =
+let add_team name solves =
   let add' team (module C : Caqti_lwt.CONNECTION) =
-    C.exec add_query team
+    C.find
+      (Caqti_request.find
+         Caqti_type.(tup2 string int)
+         Caqti_type.(int)
+         "INSERT INTO teams (name, solves) VALUES (?, ?) RETURNING id")
+      team
   in
   Caqti_lwt.Pool.use (add' (name, solves)) pool |> or_error
+
+let add_puzzle name answer =
+  let add' team (module C : Caqti_lwt.CONNECTION) =
+    C.exec
+      (Caqti_request.exec
+         Caqti_type.(tup2 string string)
+         "INSERT INTO puzzles (name, answer) VALUES (?, ?)")
+      team
+  in
+  Caqti_lwt.Pool.use (add' (name, answer)) pool |> or_error
+
+let add_solve team_id puzzle_id =
+  let add' team (module C : Caqti_lwt.CONNECTION) =
+    C.exec
+      (Caqti_request.exec
+         Caqti_type.(tup2 int int)
+         "INSERT INTO puzteam (team_id, puzzle_id) VALUES (?, ?)")
+      team
+  in
+  Caqti_lwt.Pool.use (add' (team_id, puzzle_id)) pool |> or_error
 
 let remove_query =
   Caqti_request.exec Caqti_type.int "DELETE FROM teams WHERE id = ?"

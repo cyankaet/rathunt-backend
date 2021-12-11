@@ -27,7 +27,7 @@ let print_team_handler req =
 
 (* prints first team in database*)
 let get_first_team _ =
-  let* teams = Db.get_all () in
+  let* teams = Db.get_all_teams () in
   let one = List.hd (unwrap teams) in
   let person = one |> Team.yojson_of_t in
   Lwt.return (Response.of_json person)
@@ -36,7 +36,7 @@ let serialize_teams (teams : Team.t list) =
   List.fold_left (fun acc x -> Team.yojson_of_t x :: acc) [] teams
 
 let get_all_teams _ =
-  let* teams = Db.get_all () in
+  let* teams = Db.get_all_teams () in
   let team_lst = unwrap teams |> serialize_teams in
   Lwt.return (Response.of_json (`List team_lst))
 
@@ -44,9 +44,8 @@ let add_new_team req =
   let* req = read_form_data req in
   let name = List.assoc "team" req in
   let solves = List.assoc "solves" req |> int_of_string in
-  let team = { Team.name; id = 3; Team.solves } |> Team.yojson_of_t in
-  ignore (Db.add name solves);
-  Lwt.return (Response.of_json team)
+  let* id = Db.add_team name solves in
+  Lwt.return (Response.of_json (`Int (unwrap id)))
 
 let _ =
   App.empty
