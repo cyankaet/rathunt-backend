@@ -41,13 +41,13 @@ val get_all_teams : unit -> (team list, error) result Lwt.t
 (** [get_all_teams ()] returns a list of all the teams and their data
     currently in the teams table, corresponding to the team type *)
 
-val add_team : string -> string -> (unit, error) result Lwt.t
-(** [add_team name password] inserts a new team into the teams table in
-    the local database specified by [$DATABASE_URL] with name field
-    [name] and password field [password]. Returns [Database_error] if
-    there is some issue with the SQL transaction - frequently duplicate
-    key error when the same username is attempted to register multiple
-    times *)
+val add_team : string -> int -> string -> (unit, error) result Lwt.t
+(** [add_team name solves password] inserts a new team into the teams
+    table in the local database specified by [$DATABASE_URL] with name
+    field [name], number of solves [solves], and password field
+    [password]. Returns [Database_error] if there is some issue with the
+    SQL transaction - frequently duplicate key error when the same
+    username is attempted to register multiple times *)
 
 val add_puzzle : string -> string -> (unit, error) result Lwt.t
 (** [add_puzzle name answer] inserts a new puzzle into the puzzles table

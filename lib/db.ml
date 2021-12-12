@@ -28,6 +28,7 @@ let migrate_team_table =
   Caqti_request.exec Caqti_type.unit
     {| CREATE TABLE teams (
             name VARCHAR NOT NULL UNIQUE PRIMARY KEY,
+            solves INTEGER,
             password VARCHAR
          )
       |}
@@ -80,28 +81,29 @@ let rollback_puzzles () = rollback "puzzles"
 
 let get_all_teams_query =
   Caqti_request.collect Caqti_type.unit
-    Caqti_type.(tup2 string string)
-    "SELECT name,  password FROM teams"
+    Caqti_type.(tup3 string int string)
+    "SELECT name, solves, password FROM teams"
 
 let get_all get_all_query =
   let get_all' (module C : Caqti_lwt.CONNECTION) =
     C.fold get_all_query
-      (fun (name, password) acc -> { name; password } :: acc)
+      (fun (name, solves, password) acc ->
+        { name; solves; password } :: acc)
       () []
   in
   Caqti_lwt.Pool.use get_all' pool |> or_error
 
 let get_all_teams () = get_all get_all_teams_query
 
-let add_team name passwd =
+let add_team name solves passwd =
   let add' team (module C : Caqti_lwt.CONNECTION) =
     C.exec
       (Caqti_request.exec
-         Caqti_type.(tup2 string string)
-         "INSERT INTO teams (name, password) VALUES (?, ?)")
+         Caqti_type.(tup3 string int string)
+         "INSERT INTO teams (name, solves, password) VALUES (?, ?, ?)")
       team
   in
-  Caqti_lwt.Pool.use (add' (name, passwd)) pool |> or_error
+  Caqti_lwt.Pool.use (add' (name, solves, passwd)) pool |> or_error
 
 let add_puzzle name answer =
   let add' team (module C : Caqti_lwt.CONNECTION) =
