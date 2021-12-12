@@ -21,8 +21,10 @@ let read_form_data req =
    you passed and solves = 0 *)
 let print_team_handler req =
   let name = Router.param req "name" in
-  let id = Router.param req "id" |> int_of_string in
-  let team = { Team.name; id; solves = 0 } |> Team.yojson_of_t in
+  let password = Router.param req "passwd" in
+  let team =
+    { Team.name; solves = 0; Team.password } |> Team.yojson_of_t
+  in
   Lwt.return (Response.of_json team)
 
 (* prints first team in database*)
@@ -44,12 +46,16 @@ let add_new_team req =
   let* req = read_form_data req in
   let name = List.assoc "team" req in
   let solves = List.assoc "solves" req |> int_of_string in
-  let* id = Db.add_team name solves in
-  Lwt.return (Response.of_json (`Int (unwrap id)))
+  let password = List.assoc "password" req in
+  ignore (Db.add_team name solves password);
+  let team_json =
+    (name, solves, password) |> Team.team_of_vals |> Team.yojson_of_t
+  in
+  Lwt.return (Response.of_json team_json)
 
 let _ =
   App.empty
-  |> App.get "/team/:id/:name" print_team_handler
+  |> App.get "/team/:passwd/:name" print_team_handler
   |> App.get "/team/first" get_first_team
   |> App.get "/teams/" get_all_teams
   |> App.post "/team/new/" add_new_team

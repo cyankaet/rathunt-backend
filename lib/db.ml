@@ -27,8 +27,7 @@ let or_error m =
 let migrate_team_table =
   Caqti_request.exec Caqti_type.unit
     {| CREATE TABLE teams (
-            id SERIAL NOT NULL PRIMARY KEY,
-            name VARCHAR,
+            name VARCHAR NOT NULL UNIQUE PRIMARY KEY,
             solves INTEGER,
             password VARCHAR
          )
@@ -47,9 +46,9 @@ let migrate_team_puzzle_join =
   Caqti_request.exec Caqti_type.unit
     {| CREATE TABLE puzteam (
           id SERIAL NOT NULL PRIMARY KEY,
-          team_id INTEGER NOT NULL,  
+          team_id VARCHAR NOT NULL,  
           puzzle_id INTEGER NOT NULL,  
-          FOREIGN KEY(team_id) REFERENCES teams(id),
+          FOREIGN KEY(team_id) REFERENCES teams(name),
           FOREIGN KEY(puzzle_id) REFERENCES puzzles(id)
         )
     |}
@@ -82,29 +81,29 @@ let rollback_puzzles () = rollback "puzzles"
 
 let get_all_teams_query =
   Caqti_request.collect Caqti_type.unit
-    Caqti_type.(tup3 int string int)
-    "SELECT id, name, solves FROM teams"
+    Caqti_type.(tup3 string int string)
+    "SELECT name, solves, password FROM teams"
 
 let get_all get_all_query =
   let get_all' (module C : Caqti_lwt.CONNECTION) =
     C.fold get_all_query
-      (fun (id, name, solves) acc -> { id; name; solves } :: acc)
+      (fun (name, solves, password) acc ->
+        { name; solves; password } :: acc)
       () []
   in
   Caqti_lwt.Pool.use get_all' pool |> or_error
 
 let get_all_teams () = get_all get_all_teams_query
 
-let add_team name solves =
+let add_team name solves passwd =
   let add' team (module C : Caqti_lwt.CONNECTION) =
-    C.find
-      (Caqti_request.find
-         Caqti_type.(tup2 string int)
-         Caqti_type.(int)
-         "INSERT INTO teams (name, solves) VALUES (?, ?) RETURNING id")
+    C.exec
+      (Caqti_request.exec
+         Caqti_type.(tup3 string int string)
+         "INSERT INTO teams (name, solves, password) VALUES (?, ?, ?)")
       team
   in
-  Caqti_lwt.Pool.use (add' (name, solves)) pool |> or_error
+  Caqti_lwt.Pool.use (add' (name, solves, passwd)) pool |> or_error
 
 let add_puzzle name answer =
   let add' team (module C : Caqti_lwt.CONNECTION) =
