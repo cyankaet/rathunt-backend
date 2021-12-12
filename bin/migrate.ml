@@ -18,6 +18,8 @@ let migrate_join () =
   | Ok () -> print_endline "Done." |> Lwt.return
   | Error (Db.Database_error msg) -> print_endline msg |> Lwt.return
 
+(** migrates all three tables (teams, puzzles, puzteam) to the local
+    database*)
 let () =
   Lwt_main.run (migrate_team ());
   Lwt_main.run (migrate_puzzles ());

@@ -18,6 +18,8 @@ let rollback_join () =
   | Ok () -> print_endline "Done." |> Lwt.return
   | Error (Db.Database_error msg) -> print_endline msg |> Lwt.return
 
+(** rolls back / deletes all three tables (teams, puzzles, puzteam) to
+    the local database.*)
 let () =
   Lwt_main.run (rollback_join ());
   Lwt_main.run (rollback_team ());
