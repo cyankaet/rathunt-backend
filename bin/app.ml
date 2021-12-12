@@ -11,17 +11,20 @@ let unwrap = function
   | Ok x -> x
   | Error (Db.Database_error exn) -> failwith exn
 
+(** [read_form_data req] parses a FormData post request body and returns
+    an association list of key-value pairs from the request. Raises
+    [Failure "no form data"] if the request is empty.*)
 let read_form_data req =
   let* req = to_multipart_form_data req in
   match req with
   | None -> failwith "no form data"
   | Some lst -> Lwt.return lst
 
-(* litmus test for whether the API is working at all, returns the inputs
-   you passed and solves = 0 *)
 let hello_world _ =
   Lwt.return (Response.of_json (`String "hello, world!"))
 
+(** [serialize_teams teams] creates a list of JSON objects representing
+    a list of [teams]*)
 let serialize_teams (teams : Team.t list) =
   List.fold_left (fun acc x -> Team.yojson_of_t x :: acc) [] teams
 
@@ -41,6 +44,7 @@ let add_new_team req =
   in
   Lwt.return (Response.of_json team_json)
 
+(** defines the routes of the API *)
 let _ =
   App.empty
   |> App.get "/hello/" hello_world
