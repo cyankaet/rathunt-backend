@@ -42,6 +42,7 @@ let migrate_puzzle_table =
           )
       |}
 
+(** Caqti request with SQL to create puzteam table *)
 let migrate_team_puzzle_join =
   Caqti_request.exec Caqti_type.unit
     {| CREATE TABLE puzteam (
@@ -134,11 +135,16 @@ let remove id =
   in
   Caqti_lwt.Pool.use (remove' id) pool |> or_error
 
-let clear_query =
-  Caqti_request.exec Caqti_type.unit "TRUNCATE TABLE teams"
-
-let clear () =
+let clear name =
   let clear' (module C : Caqti_lwt.CONNECTION) =
-    C.exec clear_query ()
+    C.exec
+      (Caqti_request.exec Caqti_type.unit ("TRUNCATE TABLE " ^ name))
+      ()
   in
   Caqti_lwt.Pool.use clear' pool |> or_error
+
+let clear_teams () = clear "teams"
+
+let clear_puzzles () = clear "puzzles"
+
+let clear_join () = clear "puzteam"
