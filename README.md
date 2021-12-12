@@ -1,2 +1,1 @@
-https://gitlab.com/shonfeder/ocaml_webapp
-https://medium.com/@bobbypriambodo/interfacing-ocaml-and-postgresql-with-caqti-a92515bdaa11
+Huge shoutout to Bobby Priambodo for creating [this tutorial](https://medium.com/@bobbypriambodo/interfacing-ocaml-and-postgresql-with-caqti-a92515bdaa11]), which helped a lot with our initial development.

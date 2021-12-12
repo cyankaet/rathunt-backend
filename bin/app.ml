@@ -36,13 +36,12 @@ let get_all_teams _ =
 let add_new_team req =
   let* req = read_form_data req in
   let name = List.assoc "team" req in
-  let solves = List.assoc "solves" req |> int_of_string in
   let password = List.assoc "password" req in
-  let* txn_result = Db.add_team name solves password in
+  let* txn_result = Db.add_team name password in
   try
     unwrap txn_result;
     let team_json =
-      (name, solves, password) |> Team.team_of_vals |> Team.yojson_of_t
+      (name, password) |> Team.team_of_vals |> Team.yojson_of_t
     in
     Lwt.return (Response.of_json team_json)
   with

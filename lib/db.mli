@@ -18,7 +18,7 @@ val rollback_puzzles : unit -> (unit, error) result Lwt.t
 (* table interactions *)
 val get_all_teams : unit -> (team list, error) result Lwt.t
 
-val add_team : string -> int -> string -> (unit, error) result Lwt.t
+val add_team : string -> string -> (unit, error) result Lwt.t
 
 val add_puzzle : string -> string -> (unit, error) result Lwt.t
 
