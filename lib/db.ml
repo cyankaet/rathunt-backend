@@ -1,10 +1,10 @@
 include Types.Team
 include Types.Puzzle
 
+(** url of local PostgreSQL database to be used for all transactions *)
 let connection_url = Unix.getenv "DATABASE_URL"
 
-(* This is the connection pool we will use for executing DB
-   operations. *)
+(** This is the connection pool we will use for executing DB operations. *)
 let pool =
   match
     Caqti_lwt.connect_pool ~max_size:10 (Uri.of_string connection_url)
@@ -16,9 +16,9 @@ type team = Types.Team.t
 
 type error = Database_error of string
 
-(* Helper method to map Caqti errors to our own error type. val or_error
-   : ('a, [> Caqti_error.t ]) result Lwt.t -> ('a, error) result
-   Lwt.t *)
+(** Helper method to map Caqti errors to our own error type. val
+    or_error : ('a, [> Caqti_error.t ]) result Lwt.t -> ('a, error)
+    result Lwt.t *)
 let or_error m =
   match%lwt m with
   | Ok a -> Ok a |> Lwt.return
@@ -27,9 +27,9 @@ let or_error m =
 let migrate_team_table =
   Caqti_request.exec Caqti_type.unit
     {| CREATE TABLE teams (
-            id SERIAL NOT NULL PRIMARY KEY,
-            name VARCHAR,
-            solves INTEGER
+            name VARCHAR NOT NULL UNIQUE PRIMARY KEY,
+            solves INTEGER,
+            password VARCHAR
          )
       |}
 
@@ -42,13 +42,14 @@ let migrate_puzzle_table =
           )
       |}
 
+(** Caqti request with SQL to create puzteam table *)
 let migrate_team_puzzle_join =
   Caqti_request.exec Caqti_type.unit
     {| CREATE TABLE puzteam (
           id SERIAL NOT NULL PRIMARY KEY,
-          team_id INTEGER NOT NULL,  
+          team_id VARCHAR NOT NULL,  
           puzzle_id INTEGER NOT NULL,  
-          FOREIGN KEY(team_id) REFERENCES teams(id),
+          FOREIGN KEY(team_id) REFERENCES teams(name),
           FOREIGN KEY(puzzle_id) REFERENCES puzzles(id)
         )
     |}
@@ -65,38 +66,65 @@ let migrate_puzzles () = migrate migrate_puzzle_table
 
 let migrate_join () = migrate migrate_team_puzzle_join
 
-let rollback_query =
-  Caqti_request.exec Caqti_type.unit "DROP TABLE teams"
-
-let rollback () =
+let rollback name =
   let rollback' (module C : Caqti_lwt.CONNECTION) =
-    C.exec rollback_query ()
+    C.exec
+      (Caqti_request.exec Caqti_type.unit ("DROP TABLE " ^ name))
+      ()
   in
   Caqti_lwt.Pool.use rollback' pool |> or_error
 
-let get_all_query =
-  Caqti_request.collect Caqti_type.unit
-    Caqti_type.(tup3 int string int)
-    "SELECT id, name, solves FROM teams"
+let rollback_teams () = rollback "teams"
 
-let get_all () =
+let rollback_join () = rollback "puzteam"
+
+let rollback_puzzles () = rollback "puzzles"
+
+let get_all_teams_query =
+  Caqti_request.collect Caqti_type.unit
+    Caqti_type.(tup3 string int string)
+    "SELECT name, solves, password FROM teams"
+
+let get_all get_all_query =
   let get_all' (module C : Caqti_lwt.CONNECTION) =
     C.fold get_all_query
-      (fun (id, name, solves) acc -> { id; name; solves } :: acc)
+      (fun (name, solves, password) acc ->
+        { name; solves; password } :: acc)
       () []
   in
   Caqti_lwt.Pool.use get_all' pool |> or_error
 
-let add_query =
-  Caqti_request.exec
-    Caqti_type.(tup2 string int)
-    "INSERT INTO teams (name, solves) VALUES (?, ?)"
+let get_all_teams () = get_all get_all_teams_query
 
-let add name solves =
+let add_team name solves passwd =
   let add' team (module C : Caqti_lwt.CONNECTION) =
-    C.exec add_query team
+    C.exec
+      (Caqti_request.exec
+         Caqti_type.(tup3 string int string)
+         "INSERT INTO teams (name, solves, password) VALUES (?, ?, ?)")
+      team
   in
-  Caqti_lwt.Pool.use (add' (name, solves)) pool |> or_error
+  Caqti_lwt.Pool.use (add' (name, solves, passwd)) pool |> or_error
+
+let add_puzzle name answer =
+  let add' team (module C : Caqti_lwt.CONNECTION) =
+    C.exec
+      (Caqti_request.exec
+         Caqti_type.(tup2 string string)
+         "INSERT INTO puzzles (name, answer) VALUES (?, ?)")
+      team
+  in
+  Caqti_lwt.Pool.use (add' (name, answer)) pool |> or_error
+
+let add_solve team_id puzzle_id =
+  let add' team (module C : Caqti_lwt.CONNECTION) =
+    C.exec
+      (Caqti_request.exec
+         Caqti_type.(tup2 int int)
+         "INSERT INTO puzteam (team_id, puzzle_id) VALUES (?, ?)")
+      team
+  in
+  Caqti_lwt.Pool.use (add' (team_id, puzzle_id)) pool |> or_error
 
 let remove_query =
   Caqti_request.exec Caqti_type.int "DELETE FROM teams WHERE id = ?"
@@ -107,11 +135,16 @@ let remove id =
   in
   Caqti_lwt.Pool.use (remove' id) pool |> or_error
 
-let clear_query =
-  Caqti_request.exec Caqti_type.unit "TRUNCATE TABLE teams"
-
-let clear () =
+let clear name =
   let clear' (module C : Caqti_lwt.CONNECTION) =
-    C.exec clear_query ()
+    C.exec
+      (Caqti_request.exec Caqti_type.unit ("TRUNCATE TABLE " ^ name))
+      ()
   in
   Caqti_lwt.Pool.use clear' pool |> or_error
+
+let clear_teams () = clear "teams"
+
+let clear_puzzles () = clear "puzzles"
+
+let clear_join () = clear "puzteam"

@@ -11,47 +11,51 @@ let unwrap = function
   | Ok x -> x
   | Error (Db.Database_error exn) -> failwith exn
 
+(** [read_form_data req] parses a FormData post request body and returns
+    an association list of key-value pairs from the request. Raises
+    [Failure "no form data"] if the request is empty.*)
 let read_form_data req =
   let* req = to_multipart_form_data req in
   match req with
   | None -> failwith "no form data"
   | Some lst -> Lwt.return lst
 
-(* litmus test for whether the API is working at all, returns the inputs
-   you passed and solves = 0 *)
-let print_team_handler req =
-  let name = Router.param req "name" in
-  let id = Router.param req "id" |> int_of_string in
-  let team = { Team.name; id; solves = 0 } |> Team.yojson_of_t in
-  Lwt.return (Response.of_json team)
+let hello_world _ =
+  Lwt.return (Response.of_json (`String "hello, world!"))
 
-(* prints first team in database*)
-let get_first_team _ =
-  let* teams = Db.get_all () in
-  let one = List.hd (unwrap teams) in
-  let person = one |> Team.yojson_of_t in
-  Lwt.return (Response.of_json person)
-
+(** [serialize_teams teams] creates a list of JSON objects representing
+    a list of [teams] according to the team type *)
 let serialize_teams (teams : Team.t list) =
   List.fold_left (fun acc x -> Team.yojson_of_t x :: acc) [] teams
 
 let get_all_teams _ =
-  let* teams = Db.get_all () in
+  let* teams = Db.get_all_teams () in
   let team_lst = unwrap teams |> serialize_teams in
   Lwt.return (Response.of_json (`List team_lst))
 
-let test_post req =
+let add_new_team req =
   let* req = read_form_data req in
   let name = List.assoc "team" req in
   let solves = List.assoc "solves" req |> int_of_string in
-  let team = { Team.name; id = 3; Team.solves } |> Team.yojson_of_t in
-  ignore (Db.add name solves);
-  Lwt.return (Response.of_json team)
+  let password = List.assoc "password" req in
+  let* txn_result = Db.add_team name solves password in
+  try
+    unwrap txn_result;
+    let team_json =
+      (name, solves, password) |> Team.team_of_vals |> Team.yojson_of_t
+    in
+    Lwt.return (Response.of_json team_json)
+  with
+  | Failure exn ->
+      Lwt.return
+        (Response.of_json
+           ?status:(Some (Status.of_code 400))
+           (`String exn))
 
+(** defines the routes of the API *)
 let _ =
   App.empty
-  |> App.get "/team/:id/:name" print_team_handler
-  |> App.get "/team/first" get_first_team
+  |> App.get "/hello/" hello_world
   |> App.get "/teams/" get_all_teams
-  |> App.post "/team/post/" test_post
+  |> App.post "/team/new/" add_new_team
   |> App.run_command

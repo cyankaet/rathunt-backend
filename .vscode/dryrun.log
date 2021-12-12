@@ -1,5 +1,0 @@
-make --dry-run --always-make --keep-going --print-directory
-make: Entering directory '/home/petercao/CornellTextbooks/21 Fall/CS 3110 - Data Structures and Functional Programmin/rathunt-backend'
-dune exec bin/app.exe
-make: Leaving directory '/home/petercao/CornellTextbooks/21 Fall/CS 3110 - Data Structures and Functional Programmin/rathunt-backend'
- 
