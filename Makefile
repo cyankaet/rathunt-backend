@@ -4,7 +4,7 @@ build:
 	dune build
 	
 run:
-	dune exec bin/app.exe
+	dune exec bin/app.exe -- -p ${PORT}
 
 debug:
 	dune exec bin/app.exe -- -p ${PORT} --debug
