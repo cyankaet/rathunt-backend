@@ -2,6 +2,9 @@
 
 build:
 	dune build
+
+docs:
+	dune build @doc
 	
 run:
 	dune exec bin/app.exe -- -p ${PORT}
