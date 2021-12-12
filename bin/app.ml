@@ -24,7 +24,7 @@ let hello_world _ =
   Lwt.return (Response.of_json (`String "hello, world!"))
 
 (** [serialize_teams teams] creates a list of JSON objects representing
-    a list of [teams]*)
+    a list of [teams] according to the team type *)
 let serialize_teams (teams : Team.t list) =
   List.fold_left (fun acc x -> Team.yojson_of_t x :: acc) [] teams
 
@@ -38,11 +38,19 @@ let add_new_team req =
   let name = List.assoc "team" req in
   let solves = List.assoc "solves" req |> int_of_string in
   let password = List.assoc "password" req in
-  ignore (Db.add_team name solves password);
-  let team_json =
-    (name, solves, password) |> Team.team_of_vals |> Team.yojson_of_t
-  in
-  Lwt.return (Response.of_json team_json)
+  let* txn_result = Db.add_team name solves password in
+  try
+    unwrap txn_result;
+    let team_json =
+      (name, solves, password) |> Team.team_of_vals |> Team.yojson_of_t
+    in
+    Lwt.return (Response.of_json team_json)
+  with
+  | Failure exn ->
+      Lwt.return
+        (Response.of_json
+           ?status:(Some (Status.of_code 400))
+           (`String exn))
 
 (** defines the routes of the API *)
 let _ =
