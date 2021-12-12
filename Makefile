@@ -23,3 +23,7 @@ migrate:
 
 rollback:
 	dune exec bin/rollback.exe
+
+zip:
+	rm -f rathunt.zip
+	zip -r rathunt.zip . -x@exclude.lst
