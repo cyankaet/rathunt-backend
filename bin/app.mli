@@ -12,4 +12,5 @@ val get_all_teams : 'a -> Response.t Lwt.t
 val add_new_team : Request.t -> Response.t Lwt.t
 (** [add_new_team req] takes a FormData HTTP POST request [req] and
     inserts the specified team in the table. API: Expects "name" :
-    string, "solves" : int, "password" : string keys.*)
+    string, "solves" : int, "password" : string keys where "name" and
+    "password" contain only alphanumeric or symbol (!\@#) characters.*)

@@ -117,20 +117,11 @@ let add_solve team_id puzzle_id =
   let add' team (module C : Caqti_lwt.CONNECTION) =
     C.exec
       (Caqti_request.exec
-         Caqti_type.(tup2 int int)
+         Caqti_type.(tup2 string string)
          "INSERT INTO puzteam (team_id, puzzle_id) VALUES (?, ?)")
       team
   in
   Caqti_lwt.Pool.use (add' (team_id, puzzle_id)) pool |> or_error
-
-let remove_query =
-  Caqti_request.exec Caqti_type.int "DELETE FROM teams WHERE id = ?"
-
-let remove id =
-  let remove' id (module C : Caqti_lwt.CONNECTION) =
-    C.exec remove_query id
-  in
-  Caqti_lwt.Pool.use (remove' id) pool |> or_error
 
 let clear name =
   let clear' (module C : Caqti_lwt.CONNECTION) =
