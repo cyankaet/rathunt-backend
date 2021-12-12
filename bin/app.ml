@@ -19,20 +19,8 @@ let read_form_data req =
 
 (* litmus test for whether the API is working at all, returns the inputs
    you passed and solves = 0 *)
-let print_team_handler req =
-  let name = Router.param req "name" in
-  let password = Router.param req "passwd" in
-  let team =
-    { Team.name; solves = 0; Team.password } |> Team.yojson_of_t
-  in
-  Lwt.return (Response.of_json team)
-
-(* prints first team in database*)
-let get_first_team _ =
-  let* teams = Db.get_all_teams () in
-  let one = List.hd (unwrap teams) in
-  let person = one |> Team.yojson_of_t in
-  Lwt.return (Response.of_json person)
+let hello_world _ =
+  Lwt.return (Response.of_json (`String "hello, world!"))
 
 let serialize_teams (teams : Team.t list) =
   List.fold_left (fun acc x -> Team.yojson_of_t x :: acc) [] teams
@@ -55,8 +43,7 @@ let add_new_team req =
 
 let _ =
   App.empty
-  |> App.get "/team/:passwd/:name" print_team_handler
-  |> App.get "/team/first" get_first_team
+  |> App.get "/hello/" hello_world
   |> App.get "/teams/" get_all_teams
   |> App.post "/team/new/" add_new_team
   |> App.run_command
