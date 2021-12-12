@@ -1,3 +1,9 @@
+(** Interface for all local database interactions
+
+    This module represents the tables held in the PostgreSQL database.
+    It handles migration and rollback of tables, clearing tables,
+    inserting rows, and querying the data *)
+
 type team = Types.Team.t
 (** internal representation of team type through application *)
 
@@ -77,6 +83,6 @@ val clear_puzzles : unit -> (unit, error) result Lwt.t
     [Database_error] if there is some issue with the SQL transaction*)
 
 val clear_join : unit -> (unit, error) result Lwt.t
-(*** [clear_join ()] empties the puzteam table in the local database
-  specified by [$DATABASE_URL]. Returns [Database_error] if there is
-  some issue with the SQL transaction *)
+(** [clear_join ()] empties the puzteam table in the local database
+    specified by [$DATABASE_URL]. Returns [Database_error] if there is
+    some issue with the SQL transaction *)

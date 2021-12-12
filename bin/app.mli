@@ -1,3 +1,5 @@
+(** Defines the routes of the API *)
+
 open Opium
 
 val hello_world : 'a -> Response.t Lwt.t

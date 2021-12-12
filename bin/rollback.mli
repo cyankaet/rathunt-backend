@@ -1,3 +1,5 @@
+(** Rolls back database tables. *)
+
 val rollback_team : unit -> unit Lwt.t
 (** [rollback_team ()] deletes the teams table from the local database
     specified by environment variable [DATABASE_URL]. Raises
