@@ -1,10 +1,10 @@
 include Types.Team
 include Types.Puzzle
 
+(** url of local PostgreSQL database to be used for all transactions *)
 let connection_url = Unix.getenv "DATABASE_URL"
 
-(* This is the connection pool we will use for executing DB
-   operations. *)
+(** This is the connection pool we will use for executing DB operations. *)
 let pool =
   match
     Caqti_lwt.connect_pool ~max_size:10 (Uri.of_string connection_url)
@@ -16,9 +16,9 @@ type team = Types.Team.t
 
 type error = Database_error of string
 
-(* Helper method to map Caqti errors to our own error type. val or_error
-   : ('a, [> Caqti_error.t ]) result Lwt.t -> ('a, error) result
-   Lwt.t *)
+(** Helper method to map Caqti errors to our own error type. val
+    or_error : ('a, [> Caqti_error.t ]) result Lwt.t -> ('a, error)
+    result Lwt.t *)
 let or_error m =
   match%lwt m with
   | Ok a -> Ok a |> Lwt.return
