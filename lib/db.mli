@@ -7,6 +7,9 @@
 type team = Types.Team.t
 (** internal representation of team type through application *)
 
+type puzzle = Types.Puzzle.t
+(** internal representation of puzzle type through application *)
+
 type error =
   | Database_error of string
       (** error thrown for issues with SQL interactions with database *)
@@ -46,6 +49,11 @@ val rollback_puzzles : unit -> (unit, error) result Lwt.t
 val get_all_teams : unit -> (team list, error) result Lwt.t
 (** [get_all_teams ()] returns a list of all the teams and their data
     currently in the teams table, corresponding to the team type *)
+
+val get_all_puzzles : unit -> (puzzle list, error) result Lwt.t
+(** [get_all_puzzles ()] returns a list of all the puzzles and their
+    data currently in the puzzles table, corresponding to the puzzle
+    type *)
 
 val add_team : string -> int -> string -> (unit, error) result Lwt.t
 (** [add_team name solves password] inserts a new team into the teams

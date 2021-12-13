@@ -13,7 +13,7 @@ let pool =
   | Error err -> failwith (Caqti_error.show err)
 
 type team = Types.Team.t
-
+type puzzle = Types.Puzzle.t
 type error = Database_error of string
 
 (** Helper method to map Caqti errors to our own error type. val
@@ -60,9 +60,7 @@ let migrate migrate_table =
   Caqti_lwt.Pool.use migrate' pool |> or_error
 
 let migrate_teams () = migrate migrate_team_table
-
 let migrate_puzzles () = migrate migrate_puzzle_table
-
 let migrate_join () = migrate migrate_team_puzzle_join
 
 let rollback name =
@@ -74,26 +72,31 @@ let rollback name =
   Caqti_lwt.Pool.use rollback' pool |> or_error
 
 let rollback_teams () = rollback "teams"
-
 let rollback_join () = rollback "puzteam"
-
 let rollback_puzzles () = rollback "puzzles"
 
-let get_all_teams_query =
-  Caqti_request.collect Caqti_type.unit
-    Caqti_type.(tup3 string int string)
-    "SELECT name, solves, password FROM teams"
-
-let get_all get_all_query =
+let get_all_teams () =
   let get_all' (module C : Caqti_lwt.CONNECTION) =
-    C.fold get_all_query
+    C.fold
+      (Caqti_request.collect Caqti_type.unit
+         Caqti_type.(tup3 string int string)
+         "SELECT name, solves, password FROM teams")
       (fun (name, solves, password) acc ->
         { name; solves; password } :: acc)
       () []
   in
   Caqti_lwt.Pool.use get_all' pool |> or_error
 
-let get_all_teams () = get_all get_all_teams_query
+let get_all_puzzles () =
+  let get_all' (module C : Caqti_lwt.CONNECTION) =
+    C.fold
+      (Caqti_request.collect Caqti_type.unit
+         Caqti_type.(tup2 string string)
+         "SELECT name, answer FROM puzzles")
+      (fun (name, answer) acc -> { name; answer } :: acc)
+      () []
+  in
+  Caqti_lwt.Pool.use get_all' pool |> or_error
 
 let add_team name solves passwd =
   let add' team (module C : Caqti_lwt.CONNECTION) =
@@ -134,7 +137,5 @@ let clear name =
   Caqti_lwt.Pool.use clear' pool |> or_error
 
 let clear_teams () = clear "teams"
-
 let clear_puzzles () = clear "puzzles"
-
 let clear_join () = clear "puzteam"

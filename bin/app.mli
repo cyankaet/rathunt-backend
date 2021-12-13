@@ -16,3 +16,7 @@ val add_new_team : Request.t -> Response.t Lwt.t
     inserts the specified team in the table. API: Expects "name" :
     string, "solves" : int, "password" : string keys where "name" and
     "password" contain only alphanumeric or symbol (!\@#) characters.*)
+
+val fill_puzzle_table : 'a -> Response.t Lwt.t
+(** [fill_puzzle_table] prompts the application to load in a
+    serverside-asset and autofill the puzzle table with puzzles*)
