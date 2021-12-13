@@ -27,3 +27,7 @@ rollback:
 zip:
 	rm -f rathunt.zip
 	zip -r rathunt.zip . -x@exclude.lst
+
+count:
+	dune clean
+	cloc --by-file --include-lang=OCaml .
