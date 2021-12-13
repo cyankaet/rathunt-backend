@@ -98,6 +98,17 @@ let get_all_puzzles () =
   in
   Caqti_lwt.Pool.use get_all' pool |> or_error
 
+let get_puzzle_answer_by_name puzzle =
+  let get_puzzle' puz (module C : Caqti_lwt.CONNECTION) =
+    C.find_opt
+      (Caqti_request.find
+         Caqti_type.(string)
+         Caqti_type.(string)
+         "SELECT answer FROM puzzles WHERE name = ?")
+      puz
+  in
+  Caqti_lwt.Pool.use (get_puzzle' puzzle) pool |> or_error
+
 let add_team name solves passwd =
   let add' team (module C : Caqti_lwt.CONNECTION) =
     C.exec

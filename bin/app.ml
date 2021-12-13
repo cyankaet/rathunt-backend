@@ -104,6 +104,30 @@ let fill_puzzle_table _ =
            ?status:(Some (Status.of_code 400))
            (`String exn))
 
+let check_answer req =
+  let* req = read_form_data req in
+  let puzzle = List.assoc "puzzle" req in
+  let guess = List.assoc "guess" req in
+  let* txn_result = Db.get_puzzle_answer_by_name puzzle in
+  let answer = unwrap txn_result in
+  match answer with
+  | Some a ->
+      if guess = a then
+        Lwt.return
+          (Response.of_json
+             ?status:(Some (Status.of_code 200))
+             (`String "correct"))
+      else
+        Lwt.return
+          (Response.of_json
+             ?status:(Some (Status.of_code 200))
+             (`String "incorrect"))
+  | None ->
+      Lwt.return
+        (Response.of_json
+           ?status:(Some (Status.of_code 400))
+           (`String "this puzzle name does not exist"))
+
 (** defines the routes of the API *)
 let _ =
   App.empty
@@ -112,4 +136,5 @@ let _ =
   |> App.get "/puzzles/" get_all_puzzles
   |> App.get "/puzzles/fill/" fill_puzzle_table
   |> App.post "/team/new/" add_new_team
+  |> App.post "/check/" check_answer
   |> App.run_command
