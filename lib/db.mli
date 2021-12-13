@@ -68,6 +68,10 @@ val get_puzzle_answer_by_name :
     one) to the first puzzle that matches the provided name [puzzle] in
     the puzzles table.*)
 
+val get_team_password : string -> (string option, error) result Lwt.t
+(** [get_team_with_password team] returns the password corresponding to
+    the team [team] (if there is one) from the teams table *)
+
 val add_team : string -> int -> string -> (unit, error) result Lwt.t
 (** [add_team name solves password] inserts a new team into the teams
     table in the local database specified by [$DATABASE_URL] with name

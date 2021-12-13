@@ -37,3 +37,9 @@ val check_answer : Request.t -> Response.t Lwt.t
     checks if a team has solved a puzzle with their answer. API: Expects
     "team" : string, "puzzle" : string, "guess" : string keys where
     puzzle and team are keys in the puzzle, team tables *)
+
+val login : Request.t -> Response.t Lwt.t
+(** [check_answer req] takes a FormData HTTP POST request [req] and
+    checks if the team already exists, and if it does, whether the
+    password given is correct. API: Expects "team" : string, "password"
+    : string keys *)

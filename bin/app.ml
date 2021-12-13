@@ -137,6 +137,20 @@ let check_answer req =
       str_response ?code:(Some 400)
         ("the puzzle " ^ puzzle ^ " does not exist")
 
+let login req =
+  let* req = read_form_data req in
+  let team = List.assoc "team" req in
+  let password = List.assoc "password" req in
+  let* txn_result = Db.get_team_password team in
+  let correct_passwd = unwrap txn_result in
+  match correct_passwd with
+  | Some p ->
+      if p = password then str_response "login successful"
+      else str_response "password incorrect"
+  | None ->
+      ignore (Db.add_team team 0 password);
+      str_response ?code:(Some 201) "new team created"
+
 (** defines the routes of the API *)
 let _ =
   App.empty
@@ -147,4 +161,5 @@ let _ =
   |> App.get "/puzzles/fill/" fill_puzzle_table
   |> App.post "/team/new/" add_new_team
   |> App.post "/check/" check_answer
+  |> App.post "/login/" login
   |> App.run_command
