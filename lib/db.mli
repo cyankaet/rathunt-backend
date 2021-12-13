@@ -55,6 +55,13 @@ val get_all_puzzles : unit -> (puzzle list, error) result Lwt.t
     data currently in the puzzles table, corresponding to the puzzle
     type *)
 
+val get_all_solves :
+  unit -> ((string * string) list, error) result Lwt.t
+(** [get_all_solves ()] returns a list of pairs of teams and puzzles
+    they have solved from the puzteam table - that is, each pair
+    represents one 'solve' where (team, puzzle) means team has solved
+    puzzle.*)
+
 val get_puzzle_answer_by_name :
   string -> (string option, error) result Lwt.t
 (** [get_puzzle_answer_by_name puzzle] returns the answer (if there is

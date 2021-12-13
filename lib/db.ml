@@ -98,6 +98,17 @@ let get_all_puzzles () =
   in
   Caqti_lwt.Pool.use get_all' pool |> or_error
 
+let get_all_solves () =
+  let get_all' (module C : Caqti_lwt.CONNECTION) =
+    C.fold
+      (Caqti_request.collect Caqti_type.unit
+         Caqti_type.(tup2 string string)
+         "SELECT team_id, puzzle_id FROM puzteam")
+      (fun (team, puzzle) acc -> (team, puzzle) :: acc)
+      () []
+  in
+  Caqti_lwt.Pool.use get_all' pool |> or_error
+
 let get_puzzle_answer_by_name puzzle =
   let get_puzzle' puz (module C : Caqti_lwt.CONNECTION) =
     C.find_opt
