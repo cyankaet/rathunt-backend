@@ -2,6 +2,9 @@
 
 build:
 	dune build
+
+docs:
+	dune build @doc
 	
 run:
 	dune exec bin/app.exe -- -p ${PORT}
@@ -20,3 +23,11 @@ migrate:
 
 rollback:
 	dune exec bin/rollback.exe
+
+zip:
+	rm -f rathunt.zip
+	zip -r rathunt.zip . -x@exclude.lst
+
+count:
+	dune clean
+	cloc --by-file --include-lang=OCaml .

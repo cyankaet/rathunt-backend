@@ -1,3 +1,5 @@
+(** Migrates database tables. *)
+
 val migrate_team : unit -> unit Lwt.t
 (** [migrate_team ()] creates the teams table from the local database
     specified by environment variable [DATABASE_URL]. Raises

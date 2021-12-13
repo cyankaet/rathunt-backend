@@ -18,16 +18,10 @@ end
     return *)
 module Puzzle = struct
   type t = {
-    id : int;
     name : string;
     answer : string;
   }
 
   let yojson_of_t t =
-    `Assoc
-      [
-        ("id", `Int t.id);
-        ("name", `String t.name);
-        ("answer", `String t.answer);
-      ]
+    `Assoc [ ("name", `String t.name); ("answer", `String t.answer) ]
 end
