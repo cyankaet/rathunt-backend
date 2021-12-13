@@ -20,8 +20,13 @@ let read_form_data req =
   | None -> failwith "no form data"
   | Some lst -> Lwt.return lst
 
-let hello_world _ =
-  Lwt.return (Response.of_json (`String "hello, world!"))
+let str_response ?(code = 200) str =
+  Lwt.return
+    (Response.of_json
+       ?status:(Some (Status.of_code code))
+       (`String str))
+
+let hello_world _ = str_response "hello, world!"
 
 (** [serialize_teams teams] creates a list of JSON objects representing
     a list of [teams] according to the team type *)
@@ -56,11 +61,7 @@ let add_new_team req =
     in
     Lwt.return (Response.of_json team_json)
   with
-  | Failure exn ->
-      Lwt.return
-        (Response.of_json
-           ?status:(Some (Status.of_code 400))
-           (`String exn))
+  | Failure exn -> str_response ?code:(Some 400) exn
 
 (** [read_answers] returns a list of lines from the answers.txt file *)
 let read_answers () =
@@ -93,16 +94,9 @@ let fill_puzzle_table _ =
           insert_answers t
     in
     ignore (insert_answers answers);
-    Lwt.return
-      (Response.of_json
-         ?status:(Some (Status.of_code 200))
-         (`String "puzzles loaded!"))
+    str_response "puzzles loaded!"
   with
-  | Failure exn ->
-      Lwt.return
-        (Response.of_json
-           ?status:(Some (Status.of_code 400))
-           (`String exn))
+  | Failure exn -> str_response ?code:(Some 400) exn
 
 let check_answer req =
   let* req = read_form_data req in
@@ -112,21 +106,11 @@ let check_answer req =
   let answer = unwrap txn_result in
   match answer with
   | Some a ->
-      if guess = a then
-        Lwt.return
-          (Response.of_json
-             ?status:(Some (Status.of_code 200))
-             (`String "correct"))
-      else
-        Lwt.return
-          (Response.of_json
-             ?status:(Some (Status.of_code 200))
-             (`String "incorrect"))
+      if guess = a then str_response "correct"
+      else str_response "incorrect"
   | None ->
-      Lwt.return
-        (Response.of_json
-           ?status:(Some (Status.of_code 400))
-           (`String "this puzzle name does not exist"))
+      str_response ?code:(Some 400)
+        ("the puzzle " ^ puzzle ^ " does not exist")
 
 (** defines the routes of the API *)
 let _ =
