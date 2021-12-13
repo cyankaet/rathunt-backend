@@ -50,9 +50,9 @@ let get_all_puzzles _ =
   let team_lst = unwrap puzzles |> serialize_puzzles in
   Lwt.return (Response.of_json (`List team_lst))
 
-(** [serialize_puzzles puzzles] creates a list of JSON objects
-    representing a list of [puzzles] according to the puzzle type *)
-let serialize_solves solves =
+(** [serialize_solve_pairs solves] creates a list of JSON objects
+    representing a list of pairs of puzzle and team string pairs *)
+let serialize_solve_pairs solves =
   List.fold_left
     (fun acc x ->
       `Assoc [ ("team", `String (fst x)); ("puzzle", `String (snd x)) ]
@@ -61,8 +61,19 @@ let serialize_solves solves =
 
 let get_all_solves _ =
   let* solves = Db.get_all_solves () in
-  let solve_lst = unwrap solves |> serialize_solves in
+  let solve_lst = unwrap solves |> serialize_solve_pairs in
   Lwt.return (Response.of_json (`List solve_lst))
+
+(** [serialize_solved solved] returns a list of JSON string objects from
+    a list of strings *)
+let serialize_solved solved =
+  List.fold_left (fun acc x -> `String x :: acc) [] solved
+
+let get_team_solves req =
+  let name = Router.param req "name" in
+  let* solves_txn = Db.get_puzzles_by_team name in
+  let solves = unwrap solves_txn |> serialize_solved in
+  Lwt.return (Response.of_json (`List solves))
 
 let add_new_team req =
   let* req = read_form_data req in
@@ -156,6 +167,7 @@ let _ =
   App.empty
   |> App.get "/hello/" hello_world
   |> App.get "/teams/" get_all_teams
+  |> App.get "/solves/:name/" get_team_solves
   |> App.get "/puzzles/" get_all_puzzles
   |> App.get "/solves/" get_all_solves
   |> App.get "/puzzles/fill/" fill_puzzle_table

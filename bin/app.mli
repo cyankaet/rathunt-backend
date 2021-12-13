@@ -22,6 +22,11 @@ val get_all_solves : 'a -> Response.t Lwt.t
     that has solved the paired puzzle. API: JSON is a list of JSONs, all
     containing "team" and "puzzle" fields.*)
 
+val get_team_solves : Request.t -> Response.t Lwt.t
+(** [get_team_solves req] returns a JSON of a list of strings that
+    represents all puzzles solved by the given team. API: in route,
+    specify team name *)
+
 val add_new_team : Request.t -> Response.t Lwt.t
 (** [add_new_team req] takes a FormData HTTP POST request [req] and
     inserts the specified team in the table. API: Expects "name" :

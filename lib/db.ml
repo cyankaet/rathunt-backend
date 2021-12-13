@@ -131,6 +131,18 @@ let get_team_password team =
   in
   Caqti_lwt.Pool.use (get_team' team) pool |> or_error
 
+let get_puzzles_by_team team =
+  let get_solved' team (module C : Caqti_lwt.CONNECTION) =
+    C.fold
+      (Caqti_request.collect
+         Caqti_type.(string)
+         Caqti_type.(string)
+         "SELECT puzzle_id FROM puzteam WHERE team_id = ?")
+      (fun puzzle acc -> puzzle :: acc)
+      team []
+  in
+  Caqti_lwt.Pool.use (get_solved' team) pool |> or_error
+
 let add_team name solves passwd =
   let add' team (module C : Caqti_lwt.CONNECTION) =
     C.exec

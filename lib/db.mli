@@ -48,29 +48,36 @@ val rollback_puzzles : unit -> (unit, error) result Lwt.t
 (* table interactions *)
 val get_all_teams : unit -> (team list, error) result Lwt.t
 (** [get_all_teams ()] returns a list of all the teams and their data
-    currently in the teams table, corresponding to the team type *)
+    currently in the teams table in local database specified by
+    [$DATABASE_URL], corresponding to the team type *)
 
 val get_all_puzzles : unit -> (puzzle list, error) result Lwt.t
 (** [get_all_puzzles ()] returns a list of all the puzzles and their
-    data currently in the puzzles table, corresponding to the puzzle
-    type *)
+    data currently in the puzzles table in local database specified by
+    [$DATABASE_URL], corresponding to the puzzle type *)
 
 val get_all_solves :
   unit -> ((string * string) list, error) result Lwt.t
 (** [get_all_solves ()] returns a list of pairs of teams and puzzles
-    they have solved from the puzteam table - that is, each pair
-    represents one 'solve' where (team, puzzle) means team has solved
-    puzzle.*)
+    they have solved from the puzteam table in local database specified
+    by [$DATABASE_URL] - that is, each pair represents one 'solve' where
+    (team, puzzle) means team has solved puzzle.*)
 
 val get_puzzle_answer_by_name :
   string -> (string option, error) result Lwt.t
 (** [get_puzzle_answer_by_name puzzle] returns the answer (if there is
     one) to the first puzzle that matches the provided name [puzzle] in
-    the puzzles table.*)
+    the puzzles table in local database specified by [$DATABASE_URL]*)
 
 val get_team_password : string -> (string option, error) result Lwt.t
 (** [get_team_with_password team] returns the password corresponding to
-    the team [team] (if there is one) from the teams table *)
+    the team [team] (if there is one) from the teams table in local
+    database specified by [$DATABASE_URL] *)
+
+val get_puzzles_by_team : string -> (string list, error) result Lwt.t
+(** [get_puzzles_by_team team] returns a list of solved puzzles for the
+    team [team] from the pairs in the puzteam table in local database
+    specified by [$DATABASE_URL]*)
 
 val add_team : string -> int -> string -> (unit, error) result Lwt.t
 (** [add_team name solves password] inserts a new team into the teams
