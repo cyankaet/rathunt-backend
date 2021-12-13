@@ -1,4 +1,4 @@
-FROM ocaml/opam
+FROM ocaml/opam:ubuntu-ocaml-4.12
 
 
 RUN opam init --bare -a -y
