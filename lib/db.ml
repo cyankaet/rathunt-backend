@@ -173,10 +173,21 @@ let add_solve team_id puzzle_id =
   in
   Caqti_lwt.Pool.use (add' (team_id, puzzle_id)) pool |> or_error
 
+let increment_solves team =
+  let increment' team (module C : Caqti_lwt.CONNECTION) =
+    C.exec
+      (Caqti_request.exec
+         Caqti_type.(string)
+         "UPDATE teams SET solves = solves + 1 WHERE name = ?")
+      team
+  in
+  Caqti_lwt.Pool.use (increment' team) pool |> or_error
+
 let clear name =
   let clear' (module C : Caqti_lwt.CONNECTION) =
     C.exec
-      (Caqti_request.exec Caqti_type.unit ("TRUNCATE TABLE " ^ name))
+      (Caqti_request.exec Caqti_type.unit
+         ("TRUNCATE TABLE " ^ name ^ " CASCADE"))
       ()
   in
   Caqti_lwt.Pool.use clear' pool |> or_error

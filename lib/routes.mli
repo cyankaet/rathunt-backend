@@ -6,6 +6,10 @@ val hello_world : 'a -> Response.t Lwt.t
 (** [hello_world] returns the string "hello, world" wrapped in a JSON.
     Intended to test if the API is functioning.*)
 
+val clear_teams : 'a -> Response.t Lwt.t
+(** empties the teams table and cascades this change to the join table
+    as well*)
+
 val get_all_teams : 'a -> Response.t Lwt.t
 (** [get_all_teams] returns a JSON object with all the teams currently
     in the teams table. API: JSON is a list of JSONs, all containing
@@ -39,9 +43,10 @@ val fill_puzzle_table : 'a -> Response.t Lwt.t
 
 val check_answer : Request.t -> Response.t Lwt.t
 (** [check_answer req] takes a FormData HTTP POST request [req] and
-    checks if a team has solved a puzzle with their answer. API: Expects
-    "team" : string, "puzzle" : string, "guess" : string keys where
-    puzzle and team are keys in the puzzle, team tables *)
+    checks if a team has solved a puzzle with their answer. Saves
+    correct solves. API: Expects "team" : string, "puzzle" : string,
+    "guess" : string keys where puzzle and team are keys in the puzzle,
+    team tables *)
 
 val login : Request.t -> Response.t Lwt.t
 (** [check_answer req] takes a FormData HTTP POST request [req] and

@@ -11,7 +11,7 @@ opam switch create rathunt ocaml-base-compiler.4.12.0
 ```
 You'll need to install these packages:
 ```
-opam install lwt lwt_ppx caqti caqti-lwt caqti-driver-postgresql ounit2
+opam install lwt lwt_ppx caqti caqti-lwt caqti-driver-postgresql ounit2 ounit2-lwt
 ```
 There are also some required packages that are not currently available through OPAM. Install these by pinning them:
 ```

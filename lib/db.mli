@@ -102,6 +102,12 @@ val add_solve : string -> string -> (unit, error) result Lwt.t
     that puzzle. Returns [Database_error] if there is some issue with
     the SQL transaction *)
 
+val increment_solves : string -> (unit, error) result Lwt.t
+(** [increment_solves solves team] increments a team [team]'s solve
+    count in the teams table in the local database specified by
+    [$DATABASE_URL]. Returns [Database_error] if there is some issue
+    with the SQL transaction *)
+
 val clear_teams : unit -> (unit, error) result Lwt.t
 (** [clear_teams ()] empties the teams table in the local database
     specified by [$DATABASE_URL]. Note that this should not be run

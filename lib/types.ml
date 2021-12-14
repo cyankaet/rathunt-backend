@@ -12,6 +12,9 @@ module Team = struct
 
   let team_of_vals (name, solves, password) : t =
     { name; solves; password }
+
+  let string_of_t team =
+    "name: " ^ team.name ^ ", solves: " ^ string_of_int team.solves
 end
 
 (** internal represntation of a puzzle, can be translated to a JSON for
