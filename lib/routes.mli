@@ -6,6 +6,10 @@ val hello_world : 'a -> Response.t Lwt.t
 (** [hello_world] returns the string "hello, world" wrapped in a JSON.
     Intended to test if the API is functioning.*)
 
+val clear_teams : 'a -> Response.t Lwt.t
+(** empties the teams table and cascades this change to the join table
+    as well*)
+
 val get_all_teams : 'a -> Response.t Lwt.t
 (** [get_all_teams] returns a JSON object with all the teams currently
     in the teams table. API: JSON is a list of JSONs, all containing

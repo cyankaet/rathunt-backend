@@ -29,6 +29,11 @@ let str_response ?(code = 200) str =
 
 let hello_world _ = str_response "hello, world!"
 
+let clear_teams _ =
+  let* result = Db.clear_teams () in
+  unwrap result;
+  str_response "cleared teams"
+
 (** [serialize_teams teams] creates a list of JSON objects representing
     a list of [teams] according to the team type *)
 let serialize_teams (teams : Team.t list) =

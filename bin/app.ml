@@ -5,6 +5,7 @@ let _ =
   App.empty
   |> App.get "/hello/" hello_world
   |> App.get "/teams/" get_all_teams
+  |> App.get "/teams/clear/" clear_teams
   |> App.get "/solves/:name/" get_team_solves
   |> App.get "/puzzles/" get_all_puzzles
   |> App.get "/solves/" get_all_solves

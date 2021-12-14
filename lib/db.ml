@@ -186,7 +186,8 @@ let increment_solves team =
 let clear name =
   let clear' (module C : Caqti_lwt.CONNECTION) =
     C.exec
-      (Caqti_request.exec Caqti_type.unit ("TRUNCATE TABLE " ^ name))
+      (Caqti_request.exec Caqti_type.unit
+         ("TRUNCATE TABLE " ^ name ^ " CASCADE"))
       ()
   in
   Caqti_lwt.Pool.use clear' pool |> or_error
