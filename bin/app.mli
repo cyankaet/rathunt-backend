@@ -39,9 +39,10 @@ val fill_puzzle_table : 'a -> Response.t Lwt.t
 
 val check_answer : Request.t -> Response.t Lwt.t
 (** [check_answer req] takes a FormData HTTP POST request [req] and
-    checks if a team has solved a puzzle with their answer. API: Expects
-    "team" : string, "puzzle" : string, "guess" : string keys where
-    puzzle and team are keys in the puzzle, team tables *)
+    checks if a team has solved a puzzle with their answer. Saves
+    correct solves. API: Expects "team" : string, "puzzle" : string,
+    "guess" : string keys where puzzle and team are keys in the puzzle,
+    team tables *)
 
 val login : Request.t -> Response.t Lwt.t
 (** [check_answer req] takes a FormData HTTP POST request [req] and

@@ -138,6 +138,7 @@ let check_answer req =
         let* add_txn = Db.add_solve team puzzle in
         try
           ignore (unwrap add_txn);
+          ignore (Db.increment_solves team);
           str_response "correct"
         with
         | Failure _ ->
