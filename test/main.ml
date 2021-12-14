@@ -1,13 +1,29 @@
 open OUnit2
 open Database
+open Lwt
+open Lwt.Syntax
+open OUnitLwt
 
 let () =
   ignore (Db.clear_join ());
   ignore (Db.clear_puzzles ());
   ignore (Db.clear_teams ())
 
-let migrate_tests = [ ("1+2 =3 " >:: fun _ -> assert_equal 3 (1 + 2)) ]
+let extract = function
+  | Ok x -> x
+  | Error (Db.Database_error exn) -> failwith exn
 
+let migrate_tests =
+  [
+    "starts with an empty database"
+    >:: lwt_wrapper (fun _ ->
+            (let* result = Db.get_all_teams () in
+             Lwt.return (extract result))
+            >>= fun teams -> return (assert_equal [] teams));
+  ]
+
+(* example: "SimpleAssertion" >:: (lwt_wrapper (fun ctxt -> Lwt.return 4
+   >>= fun i -> Lwt.return (assert_equal ~ctxt 4 i))) *)
 let suite =
   "test suite for rathunt backend" >::: List.flatten [ migrate_tests ]
 
