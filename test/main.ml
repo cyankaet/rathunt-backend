@@ -9,29 +9,44 @@ let extract = function
   | Ok x -> x
   | Error (Db.Database_error exn) -> failwith exn
 
-let () =
-  ignore
-    (let* result = Db.clear_join () in
-     extract result;
-     let* result = Db.clear_puzzles () in
-     extract result;
-     Db.clear_teams ())
+let clear_all_tables () =
+  ignore (Db.clear_join ());
+  ignore (Db.clear_puzzles ());
+  ignore Db.clear_teams
+
+(* empty db before starting testing *)
+let () = clear_all_tables ()
 
 let print_teams teams =
   List.fold_left (fun acc x -> Team.string_of_t x ^ acc) "" teams
 
-let migrate_tests =
-  [
-    "starts with an empty database"
-    >:: lwt_wrapper (fun _ ->
-            (let* result = Db.get_all_teams () in
-             Lwt.return (extract result))
-            >>= fun teams ->
-            return (assert_equal ~printer:print_teams [] teams));
-  ]
+let team_test name f expected_value =
+  name
+  >:: lwt_wrapper (fun _ ->
+          (let* result = f in
+           Lwt.return (extract result))
+          >>= fun teams ->
+          return
+            (assert_equal ~printer:print_teams expected_value teams))
 
-(* example: "SimpleAssertion" >:: (lwt_wrapper (fun ctxt -> Lwt.return 4
-   >>= fun i -> Lwt.return (assert_equal ~ctxt 4 i))) *)
+let add_test name (team : Team.t) =
+  name
+  >:: lwt_wrapper (fun _ ->
+          (let* result =
+             Db.add_team team.name team.solves team.password
+           in
+           Lwt.return (extract result))
+          >>= fun teams -> return (assert_equal () teams))
+
+let team_one =
+  { Team.name = "test"; Team.solves = 0; Team.password = "passwd" }
+
+let migrate_tests =
+  [ (* team_test "starts with an empty database" (Db.get_all_teams ())
+       []; add_test "add team one" team_one; team_test "adding a team
+       means it's in the database" (Db.get_all_teams ()) [ team_one
+       ]; *) ]
+
 let suite =
   "test suite for rathunt backend" >::: List.flatten [ migrate_tests ]
 
