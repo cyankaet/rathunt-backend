@@ -1,3 +1,0 @@
-(executable
- (name main)
- (libraries Database ounit2 ounit2-lwt))
